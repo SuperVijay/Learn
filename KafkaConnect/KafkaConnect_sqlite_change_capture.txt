@@ -1,0 +1,263 @@
+
+In this hands-on lab, we use a container, installed with all the necessary Kafka Connect components. We open a shell to that container and create a SQLite database with a new table to represent the data. We then start Kafka Connect in standalone mode and create a connector for the SQLite database. We verify the connector is working by writing additional tables to the database while monitoring the Kafka consumer.
+
+We must adhere to the following rules:
+
+We use the docker image confluentinc/docker-demo-base:3.3.0
+The name of the container is "sqlite-test".
+The name of the database is "test.db".
+The name of the database table is "accounts".
+We initially insert at least two names in the table.
+We use the schema connect-avro-standalone.properties.
+We use the source-quickstart-sqlite.properties connector properties.
+After the connector has been established, we write at least two more values to the  accounts table and display them using a Kafka consumer.
+
+On the main console:
+======================
+
+
+ghost@LAPTOP-UFNUH7J8 MINGW64 ~
+$ ssh cloud_user@54.89.180.82
+The authenticity of host '54.89.180.82 (54.89.180.82)' can'                                                                                                                 t be established.
+ECDSA key fingerprint is SHA256:7NcgTFFOj934cmEsingcjqcipBS                                                                                                                 ++4Pwv/6Hl0tBWUk.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '54.89.180.82' (ECDSA) to the li                                                                                                                 st of known hosts.
+Password:
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.15.0-1032-aws x8                                                                                                                 6_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Wed Aug 21 02:47:46 UTC 2019
+
+  System load:  0.02               Processes:                                                                                                                               105
+  Usage of /:   15.8% of 19.32GB   Users logged in:                                                                                                                         0
+  Memory usage: 4%                 IP address for eth0:                                                                                                                     10.0.1.100
+  Swap usage:   0%                 IP address for docker0:                                                                                                                  172.17.0.1
+
+ * 'snap info' now shows the freshness of each channel.
+   Try 'snap info microk8s' for all the latest goodness.
+
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+84 packages can be updated.
+0 updates are security updates.
+
+
+*** System restart required ***
+cloud_user@ip-10-0-1-100:~$ clear
+cloud_user@ip-10-0-1-100:~$ ls
+cloud_user@ip-10-0-1-100:~$ pwd
+/home/cloud_user
+cloud_user@ip-10-0-1-100:~$ ls -lrt
+total 0
+cloud_user@ip-10-0-1-100:~$ sudo docker run -it --rm --name sqlite-test --network host confluentinc/docker-demo-base:3.3.0
+[sudo] password for cloud_user:
+Unable to find image 'confluentinc/docker-demo-base:3.3.0' locally
+3.3.0: Pulling from confluentinc/docker-demo-base
+ad74af05f5a2: Pull complete
+d02e292e7b5e: Pull complete
+8de7f5c81ab0: Pull complete
+ed0b76dc2730: Pull complete
+cfc44fa8a002: Pull complete
+f26010779356: Pull complete
+Digest: sha256:da5ac92576f1fa19b948c7f772dc0cdeeb8321af9a2f654c5a676983ea94bb5d
+Status: Downloaded newer image for confluentinc/docker-demo-base:3.3.0
+root@ip-10-0-1-100:/# pwd
+/
+root@ip-10-0-1-100:/# cd /tmp
+root@ip-10-0-1-100:/tmp# ls -lrt
+total 0
+root@ip-10-0-1-100:/tmp# confluent start
+Starting zookeeper
+zookeeper is [UP]
+Starting kafka
+kafka is [UP]
+Starting schema-registry
+schema-registry is [UP]
+Starting kafka-rest
+kafka-rest is [UP]
+Starting connect
+connect is [UP]
+root@ip-10-0-1-100:/tmp# apt-get install sqllite3
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+E: Unable to locate package sqllite3
+root@ip-10-0-1-100:/tmp# apt-get update
+Ign http://repos.azulsystems.com stable InRelease
+Get:1 http://repos.azulsystems.com stable Release.gpg [819 B]
+Get:2 http://repos.azulsystems.com stable Release [8604 B]
+Get:3 http://packages.confluent.io stable InRelease [5116 B]
+Get:4 http://repos.azulsystems.com stable/main amd64 Packages [20.9 kB]
+Get:5 http://security.debian.org jessie/updates InRelease [44.9 kB]
+Ign http://deb.debian.org jessie InRelease
+Get:6 http://deb.debian.org jessie-updates InRelease [16.3 kB]
+Get:7 http://deb.debian.org jessie Release.gpg [1652 B]
+Get:8 http://packages.confluent.io stable/main amd64 Packages [20.6 kB]
+Get:9 http://deb.debian.org jessie Release [77.3 kB]
+Get:10 http://security.debian.org jessie/updates/main amd64 Packages [886 kB]
+Get:11 http://deb.debian.org jessie-updates/main amd64 Packages [20 B]
+Get:12 http://deb.debian.org jessie/main amd64 Packages [9098 kB]
+Fetched 10.2 MB in 7s (1393 kB/s)
+Reading package lists... Done
+root@ip-10-0-1-100:/tmp# apt-get install sqlite3
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following extra packages will be installed:
+  libsqlite3-0
+Suggested packages:
+  sqlite3-doc
+The following NEW packages will be installed:
+  sqlite3
+The following packages will be upgraded:
+  libsqlite3-0
+1 upgraded, 1 newly installed, 0 to remove and 59 not upgraded.
+Need to get 541 kB of archives.
+After this operation, 211 kB of additional disk space will be used.
+Do you want to continue? [Y/n] Y
+Get:1 http://security.debian.org/ jessie/updates/main libsqlite3-0 amd64 3.8.7.1-1+deb8u4 [439 kB]
+Get:2 http://security.debian.org/ jessie/updates/main sqlite3 amd64 3.8.7.1-1+deb8u4 [102 kB]
+Fetched 541 kB in 1s (512 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+(Reading database ... 10566 files and directories currently installed.)
+Preparing to unpack .../libsqlite3-0_3.8.7.1-1+deb8u4_amd64.deb ...
+Unpacking libsqlite3-0:amd64 (3.8.7.1-1+deb8u4) over (3.8.7.1-1+deb8u2) ...
+Selecting previously unselected package sqlite3.
+Preparing to unpack .../sqlite3_3.8.7.1-1+deb8u4_amd64.deb ...
+Unpacking sqlite3 (3.8.7.1-1+deb8u4) ...
+Setting up libsqlite3-0:amd64 (3.8.7.1-1+deb8u4) ...
+Setting up sqlite3 (3.8.7.1-1+deb8u4) ...
+Processing triggers for libc-bin (2.19-18+deb8u10) ...
+root@ip-10-0-1-100:/tmp# sqlite3 test.db
+SQLite version 3.8.7.1 2014-10-29 13:59:56
+Enter ".help" for usage hints.
+sqlite> create table accounts (
+   ...> id integer primary key autoincrement not null,
+   ...> name varchar2(255));
+sqlite> insert into accounts (name) values ('ivjay');
+sqlite> insert into accounts (name) values ('uma');
+sqlite> .quit
+root@ip-10-0-1-100:/tmp# confluent stop connect
+Stopping connect
+connect is [DOWN]
+root@ip-10-0-1-100:/tmp#
+root@ip-10-0-1-100:/tmp#
+root@ip-10-0-1-100:/tmp# connect-standalone -daemon /etc/schema-registry/connect-avro-standalone.properties /etc/kafka-connect-jdbc/source-quickstart-sqlite.properties
+root@ip-10-0-1-100:/tmp#
+root@ip-10-0-1-100:/tmp# cat /lobs/connectStandalone.out | grep -i "finished"
+cat: /lobs/connectStandalone.out: No such file or directory
+root@ip-10-0-1-100:/tmp# cat /logs/connectStandalone.out | grep -i "finished"
+[2019-08-21 02:58:19,908] INFO Finished creating connector test-source-sqlite-jdbc-autoincrement (org.apache.kafka.connect.runtime.Worker:225)
+[2019-08-21 02:58:19,992] INFO Source task WorkerSourceTask{id=test-source-sqlite-jdbc-autoincrement-0} finished initialization and start (org.apache.kafka.connect.runtime.WorkerSourceTask:143)
+root@ip-10-0-1-100:/tmp# curl -s localhost:8083/connectors
+["test-source-sqlite-jdbc-autoincrement"]root@ip-10-0-1-100:/tmp#
+root@ip-10-0-1-100:/tmp# kafka-topics --list --zookeeper localhost:2181 | grep test-sqlite-jdbc
+test-sqlite-jdbc-accounts
+root@ip-10-0-1-100:/tmp# kafka-topics --list --zookeeper localhost:2181
+__consumer_offsets
+_schemas
+connect-configs
+connect-offsets
+connect-statuses
+test-sqlite-jdbc-accounts
+root@ip-10-0-1-100:/tmp# kafka-avro-console-consumer --new-consumer --bootstrap-server localhost:9092 --topic test-sqlite-jdbc-accounts
+^CProcessed a total of 0 messages
+root@ip-10-0-1-100:/tmp# kafka-avro-console-consumer --new-consumer --bootstrap-server localhost:9092 --topic test-sqlite-jdbc-accounts --from-beginning
+{"id":1,"name":{"string":"ivjay"}}
+{"id":2,"name":{"string":"uma"}}
+{"id":3,"name":{"string":"vaishnavi"}}
+{"id":4,"name":{"string":"Durga"}}
+{"id":5,"name":{"string":"SuperHeros"}}
+
+
+
+
+
+
+
+On a different console:
+========================
+Microsoft Windows [Version 10.0.18362.295]
+(c) 2019 Microsoft Corporation. All rights reserved.
+
+C:\Users\ghost>ssh cloud_user@54.89.180.82
+Password:
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.15.0-1032-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Wed Aug 21 03:07:42 UTC 2019
+
+  System load:  0.2                Processes:              122
+  Usage of /:   19.8% of 19.32GB   Users logged in:        1
+  Memory usage: 19%                IP address for eth0:    10.0.1.100
+  Swap usage:   0%                 IP address for docker0: 172.17.0.1
+
+ * 'snap info' now shows the freshness of each channel.
+   Try 'snap info microk8s' for all the latest goodness.
+
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+84 packages can be updated.
+0 updates are security updates.
+
+
+*** System restart required ***
+Last login: Wed Aug 21 03:03:38 2019 from 34.225.24.48
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.15.0-1032-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Wed Aug 21 03:07:42 UTC 2019
+
+  System load:  0.2                Processes:              122
+  Usage of /:   19.8% of 19.32GB   Users logged in:        1
+  Memory usage: 19%                IP address for eth0:    10.0.1.100
+  Swap usage:   0%                 IP address for docker0: 172.17.0.1
+
+ * 'snap info' now shows the freshness of each channel.
+   Try 'snap info microk8s' for all the latest goodness.
+
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+84 packages can be updated.
+0 updates are security updates.
+
+
+*** System restart required ***
+Last login: Wed Aug 21 03:03:38 2019 from 34.225.24.48
+cloud_user@ip-10-0-1-100:~$ cd
+cloud_user@ip-10-0-1-100:~$ sudo docker exec -it sqlite-test //bin//bash
+[sudo] password for cloud_user:
+Sorry, try again.
+[sudo] password for cloud_user:
+root@ip-10-0-1-100:/# cd /tmp
+root@ip-10-0-1-100:/tmp# ls -lrt
+total 780
+-rw-r--r-- 1 root root     24 Aug 21 02:52 confluent.current
+drwx------ 7 root root   4096 Aug 21 02:52 confluent.sY4th0sM
+-rw-r--r-- 1 root root   3072 Aug 21 02:56 test.db
+-rwxr--r-- 1 root root 776864 Aug 21 02:58 sqlite-3.8.11.2-4d3fc522-7938-4f19-a94f-aa63c09f7e18-libsqlitejdbc.so
+-rw-r--r-- 1 root root    195 Aug 21 02:59 connect.offsets
+drwxr-xr-x 2 root root   4096 Aug 21 03:03 hsperfdata_root
+root@ip-10-0-1-100:/tmp# sqlite3 test.db
+SQLite version 3.8.7.1 2014-10-29 13:59:56
+Enter ".help" for usage hints.
+sqlite> insert into accounts (name) values ('vaishnavi');
+sqlite> insert into accounts (name) values ('Durga');
+sqlite> insert into accounts (name) values ('SuperHeros');
+sqlite> .quit
+root@ip-10-0-1-100:/tmp#
